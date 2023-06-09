@@ -4,12 +4,15 @@ Program pphasepot
     real*8,dimension(100) ::ppot,ppotmm,ppotmp,ppotpm,ppotpp
     integer j,inn,i,k
     logical heform,sing,trip,coup,endep
+    integer end_of_file
     character*4 label
+    character(len=100) line
     common /cpot/   v(6),xmev,ymev
     common /cstate/ j,heform,sing,trip,coup,endep,label
     common /cnn/ inn
     real*8 :: convert=197.32705d0
     external n3lo500new
+        
     inn=3
     j=3
     xmev=100.0d0
@@ -19,13 +22,28 @@ Program pphasepot
     trip=.true.
     coup=.true.
     call n3lo500new
-    write(*,*) v,sing,trip,coup,endep,label
 
-    open (unit=10,file='ppoint')
+    open (unit=10,file='pphasepot_input')
     open (unit=11,file='matrixnum')
-    do i=1,100
-        read(10,*) ppoint(i)
+    do
+        read(10, '(A)', iostat=end_of_file) line
+        if(end_of_file /= 0) exit
+        write(11, '(A)') trim(line)
     end do
+    close(10)
+    close(11)
+    open (unit=11,file='matrixnum')
+    do i=1,7
+        read(11,*)
+    end do
+    do i=1,100
+        read(11,*) ppoint(i)
+    end do
+    do
+        read(11, '(A)', iostat=end_of_file) line
+        if(end_of_file /= 0) exit
+    end do
+    backspace(11)
     ppoint=ppoint*convert
 1000 format(100f20.14) 
 2000 format(100f20.14,100f20.14)
@@ -257,7 +275,6 @@ Program pphasepot
         end if
         ! np end
     end do
-    close(10)
     close(11)
     stop
 end program
